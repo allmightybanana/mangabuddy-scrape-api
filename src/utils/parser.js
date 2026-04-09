@@ -85,7 +85,7 @@ export function parseMangaDetails(html) {
   
   const title = $('h1').text().trim();
   const synopsis = $('.summary .content').text().trim();
-  const thumb = $('.thumb img');
+  const thumb = $('.book-info img, .cover img, .thumb img').first();
   const image = thumb.attr('data-src') || thumb.attr('src') || '';
   
   const info = {};
