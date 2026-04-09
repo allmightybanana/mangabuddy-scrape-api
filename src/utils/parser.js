@@ -1,5 +1,23 @@
 import * as cheerio from 'cheerio';
 
+function extractSlugFromUrl(url) {
+  return (url || '').split('/').filter(Boolean).pop() || '';
+}
+
+function dedupeChapters(chapters) {
+  const seen = new Set();
+  const deduped = [];
+
+  for (const chapter of chapters) {
+    const key = chapter.url || chapter.slug || chapter.title;
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(chapter);
+  }
+
+  return deduped;
+}
+
 export function parseHomePage(html) {
   const $ = cheerio.load(html);
   
@@ -110,16 +128,7 @@ export function parseMangaDetails(html) {
   });
   if (genres.length > 0) info.genres = genres;
 
-  const chapters = [];
-  $('.chapter-list li').each((i, el) => {
-    const a = $(el).find('a');
-    const title = a.find('.chapter-title').text().trim() || a.text().trim();
-    const url = a.attr('href') || '';
-    const slug = url.split('/').filter(Boolean).pop();
-    const time = $(el).find('.chapter-update').text().trim() || $(el).find('.time').text().trim();
-
-    chapters.push({ title, slug, url, time });
-  });
+  const chapters = parseChapterListHtml(html);
 
   return {
     title,
@@ -128,6 +137,44 @@ export function parseMangaDetails(html) {
     ...info,
     chapters
   };
+}
+
+export function parseChapterListHtml(html) {
+  const $ = cheerio.load(html);
+  const chapters = [];
+
+  // Standard list structure used in the initial manga details HTML.
+  $('.chapter-list li').each((i, el) => {
+    const a = $(el).find('a').first();
+    if (!a.length) return;
+
+    const title = a.find('.chapter-title').text().trim() || a.text().trim();
+    const url = a.attr('href') || '';
+    const slug = extractSlugFromUrl(url);
+    const time = $(el).find('.chapter-update').text().trim() || $(el).find('.time').text().trim() || '';
+
+    if (title && url) {
+      chapters.push({ title, slug, url, time });
+    }
+  });
+
+  // Full chapter payload returned by /api/manga/{bookId}/chapters.
+  $('.chapter-select option').each((i, el) => {
+    const title = $(el).text().trim();
+    const url = $(el).attr('value') || '';
+    const slug = extractSlugFromUrl(url);
+
+    if (title && url) {
+      chapters.push({ title, slug, url, time: '' });
+    }
+  });
+
+  return dedupeChapters(chapters);
+}
+
+export function extractMangaBookId(html) {
+  const match = html.match(/var\s+bookId\s*=\s*(\d+)\s*;/);
+  return match ? match[1] : null;
 }
 
 export function parseChapterPages(html) {

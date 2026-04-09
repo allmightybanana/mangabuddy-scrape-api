@@ -4,6 +4,8 @@ import {
   parseHomePage, 
   parseSearchResults, 
   parseMangaDetails,
+  parseChapterListHtml,
+  extractMangaBookId,
   parseChapterPages 
 } from '../utils/parser.js';
 
@@ -26,6 +28,23 @@ export async function getMangaDetails(slug) {
   const url = `${BASE_URL}/${slug}`;
   const html = await smartFetch(url);
   const details = parseMangaDetails(html);
+
+  // The details page often ships only a partial chapter list.
+  // Fetch the full list from MangaBuddy's chapters endpoint when possible.
+  const bookId = extractMangaBookId(html);
+  if (bookId) {
+    try {
+      const chaptersHtml = await smartFetch(`${BASE_URL}/api/manga/${bookId}/chapters`);
+      const fullChapters = parseChapterListHtml(chaptersHtml);
+      if (fullChapters.length > details.chapters.length) {
+        details.chapters = fullChapters;
+      }
+    } catch (error) {
+      // Keep base details response if the chapters endpoint fails.
+      console.warn(`Failed to fetch full chapters for ${slug}: ${error.message}`);
+    }
+  }
+
   return { success: true, details };
 }
 
