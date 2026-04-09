@@ -1,10 +1,19 @@
 import express from 'express';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
 import mangaRoutes from './routes/manga.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// CORS configuration
+app.use(cors({
+  origin: ['https://myronix.jvbarcenas.space', 'http://localhost:3000', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 app.use(express.json());
 
