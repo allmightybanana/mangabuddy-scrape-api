@@ -36,13 +36,19 @@ export async function getChapterPages(mangaSlug, chapterSlug) {
   return { success: true, images };
 }
 
-export async function proxyImage(imageUrl) {
+export async function proxyImageStream(imageUrl, res) {
   const response = await axios.get(imageUrl, {
     headers: {
       'Referer': BASE_URL,
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     },
-    responseType: 'arraybuffer'
+    responseType: 'stream'
   });
-  return response;
+  
+  res.set('Content-Type', response.headers['content-type']);
+  if (response.headers['content-length']) {
+    res.set('Content-Length', response.headers['content-length']);
+  }
+  
+  response.data.pipe(res);
 }

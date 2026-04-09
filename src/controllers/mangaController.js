@@ -45,9 +45,7 @@ export const proxyImage = async (req, res, next) => {
     const { url } = req.query;
     if (!url) return res.status(400).json({ error: 'URL parameter is required' });
 
-    const response = await scraper.proxyImage(url);
-    res.set('Content-Type', response.headers['content-type']);
-    res.send(Buffer.from(response.data));
+    await scraper.proxyImageStream(url, res);
   } catch (error) {
     next(error);
   }
