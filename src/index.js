@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3001;
 
 // CORS configuration
 app.use(cors({
-  origin: ['https://myronix.jvbarcenas.space', 'http://localhost:3000', 'http://localhost:5173'],
+  origin: ['https://myronix.jvbarcenas.space', 'https://myronix.strangled.net', 'http://localhost:3000', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
