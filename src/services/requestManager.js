@@ -56,6 +56,12 @@ export async function smartFetch(url) {
   }
 
   // 3. Fallback to FlareSolverr
+  if (!process.env.FLARESOLVERR_URL) {
+    throw new Error(
+      `Direct request failed or was blocked for ${url}. Set FLARESOLVERR_URL to use FlareSolverr fallback.`
+    );
+  }
+
   const flareResponse = await solveWithFlareExtended(url);
   
   // Store the "fresh" cookies and UA for future direct attempts
@@ -74,12 +80,14 @@ export async function smartFetch(url) {
  * Updated FlareSolverr caller that returns cookies and UA
  */
 async function solveWithFlareExtended(url) {
-  const FLARESOLVERR_URL = process.env.FLARESOLVERR_URL || 'http://localhost:8191/v1';
+  const FLARESOLVERR_URL = process.env.FLARESOLVERR_URL;
+  const maxTimeout = Number(process.env.FLARESOLVERR_TIMEOUT_MS || 120000);
   
   const response = await axios.post(FLARESOLVERR_URL, {
     cmd: 'request.get',
     url,
-    maxTimeout: 60000,
+    maxTimeout,
+    disableMedia: true,
   });
 
   const { status, solution } = response.data;

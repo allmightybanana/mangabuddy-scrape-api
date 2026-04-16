@@ -54,11 +54,17 @@ app.get('/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err);
+  const message = err?.message || err?.code || String(err);
+  console.error({
+    message,
+    code: err?.code,
+    stack: err?.stack
+  });
+
   res.status(500).json({ 
     success: false, 
     error: 'Internal Server Error', 
-    message: err.message 
+    message
   });
 });
 
