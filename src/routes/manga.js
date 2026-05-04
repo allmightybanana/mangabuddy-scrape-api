@@ -76,14 +76,21 @@ router.get('/search', mangaController.searchManga);
  *   get:
  *     tags: [Manga]
  *     summary: Get Full Manga Details
- *     description: Retrieve comprehensive metadata including synopsis, genres, status, and the complete chapter list.
+ *     description: Retrieve comprehensive metadata including synopsis, genres, status, and the complete chapter list. Supports external IDs (MAL/AniList) via the provider parameter.
  *     parameters:
  *       - in: path
  *         name: slug
  *         required: true
  *         schema:
  *           type: string
- *         description: The unique identifier for the manga (e.g., "one-piece")
+ *         description: The unique identifier for the manga (Slug, MAL ID, or AniList ID)
+ *       - in: query
+ *         name: provider
+ *         schema:
+ *           type: string
+ *           enum: [mangabuddy, mal, anilist]
+ *           default: mangabuddy
+ *         description: The provider for the identifier used in the slug path
  *     responses:
  *       200:
  *         description: Detailed manga object
@@ -103,20 +110,27 @@ router.get('/details/:slug', mangaController.getDetails);
  *   get:
  *     tags: [Manga]
  *     summary: Scrape Chapter Images
- *     description: Returns a complete list of image URLs for a specific chapter. Uses deep-parsing logic to ensure all pages are captured.
+ *     description: Returns a complete list of image URLs for a specific chapter. Supports external IDs (MAL/AniList) via the provider parameter.
  *     parameters:
  *       - in: path
  *         name: mangaSlug
  *         required: true
  *         schema:
  *           type: string
- *         description: Manga slug (e.g., "solo-leveling")
+ *         description: Manga identifier (Slug, MAL ID, or AniList ID)
  *       - in: path
  *         name: chapterSlug
  *         required: true
  *         schema:
  *           type: string
  *         description: Chapter slug (e.g., "chapter-164")
+ *       - in: query
+ *         name: provider
+ *         schema:
+ *           type: string
+ *           enum: [mangabuddy, mal, anilist]
+ *           default: mangabuddy
+ *         description: The provider for the identifier used in the mangaSlug path
  *     responses:
  *       200:
  *         description: Array of image URLs

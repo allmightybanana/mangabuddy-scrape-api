@@ -3,3 +3,5 @@ node_modules
 .worktrees
 .env
 npm-debug.log
+id-cache.json
+flare-cache.json

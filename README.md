@@ -3,7 +3,7 @@
 High-performance manga scraping interface with built-in Cloudflare bypass and image proxying.
 
 ## Base URL
-`http://localhost:3001`
+`http://localhost:3002`
 
 ---
 
@@ -29,21 +29,23 @@ Search for manga by title or keywords.
 ---
 
 ### 3. Get Manga Details
-Retrieve metadata including synopsis, genres, and chapter list.
+Retrieve metadata including synopsis, genres, and chapter list. Supports external IDs (MAL/AniList) via the `provider` parameter.
 
 - **Endpoint**: `GET /api/manga/details/:slug`
 - **Parameters**:
-  - `slug` (path, required): Manga identifier (e.g., `one-piece`).
+  - `slug` (path, required): Manga identifier (Slug, MAL ID, or AniList ID).
+  - `provider` (query, optional): `mangabuddy` (default), `mal`, or `anilist`.
 
 ---
 
 ### 4. Scrape Chapter Images
-Returns a complete list of image URLs for a specific chapter.
+Returns a complete list of image URLs for a specific chapter. Supports external IDs (MAL/AniList) via the `provider` parameter.
 
 - **Endpoint**: `GET /api/manga/read/:mangaSlug/:chapterSlug`
 - **Parameters**:
-  - `mangaSlug`: e.g., `solo-leveling`
-  - `chapterSlug`: e.g., `chapter-164`
+  - `mangaSlug`: Manga identifier (Slug, MAL ID, or AniList ID).
+  - `chapterSlug`: e.g., `chapter-164`.
+  - `provider` (query, optional): `mangabuddy` (default), `mal`, or `anilist`.
 
 ---
 
@@ -72,4 +74,4 @@ Check system status and uptime.
 
 ## Interactive Documentation
 For a live interface with request builders and data model schemas, visit the developer portal:
-[http://localhost:3001/docs](http://localhost:3001/docs)
+[http://localhost:3002/docs](http://localhost:3002/docs)

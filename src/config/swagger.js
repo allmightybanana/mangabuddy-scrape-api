@@ -20,7 +20,7 @@ This API provides high-performance access to MangaBuddy content.
     },
     servers: [
       {
-        url: 'http://localhost:3001',
+        url: 'http://localhost:3002',
         description: 'Local Development Server',
       },
     ],

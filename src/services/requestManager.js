@@ -10,13 +10,20 @@ let savedCookies = '';
 let savedUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 /**
- * Checks if the response body contains Cloudflare challenge indicators
+ * Checks if the response body contains anti-bot challenge indicators.
  */
-function isCloudflare(html) {
+function isChallengePage(html) {
   if (!html) return false;
-  return html.includes('id="cf-challenge"') || 
-         html.includes('id="challenge-form"') || 
-         html.includes('<title>Just a moment...</title>');
+
+  const normalized = html.toLowerCase();
+
+  return normalized.includes('id="cf-challenge"') ||
+         normalized.includes('id="challenge-form"') ||
+         normalized.includes('<title>just a moment...</title>') ||
+         normalized.includes('<title>ddos-guard</title>') ||
+         normalized.includes('ddos-guard') ||
+         normalized.includes('__ddg') ||
+         normalized.includes('ddos_guard');
 }
 
 export async function smartFetch(url) {
@@ -44,7 +51,7 @@ export async function smartFetch(url) {
       validateStatus: (status) => status < 500, // Handle 403/503 manually
     });
 
-    if (response.status === 200 && !isCloudflare(response.data)) {
+    if (response.status === 200 && !isChallengePage(response.data)) {
       // Direct request worked!
       cache.set(url, { data: response.data, expiry: now + CACHE_TTL });
       return response.data;
@@ -56,13 +63,8 @@ export async function smartFetch(url) {
   }
 
   // 3. Fallback to FlareSolverr
-  if (!process.env.FLARESOLVERR_URL) {
-    throw new Error(
-      `Direct request failed or was blocked for ${url}. Set FLARESOLVERR_URL to use FlareSolverr fallback.`
-    );
-  }
-
-  const flareResponse = await solveWithFlareExtended(url);
+  // Use the upgraded solveWithFlare which handles persistent sessions
+  const flareResponse = await solveWithFlare(url);
   
   // Store the "fresh" cookies and UA for future direct attempts
   if (flareResponse.cookies) {
@@ -74,31 +76,4 @@ export async function smartFetch(url) {
 
   cache.set(url, { data: flareResponse.html, expiry: now + CACHE_TTL });
   return flareResponse.html;
-}
-
-/**
- * Updated FlareSolverr caller that returns cookies and UA
- */
-async function solveWithFlareExtended(url) {
-  const FLARESOLVERR_URL = process.env.FLARESOLVERR_URL;
-  const maxTimeout = Number(process.env.FLARESOLVERR_TIMEOUT_MS || 120000);
-  
-  const response = await axios.post(FLARESOLVERR_URL, {
-    cmd: 'request.get',
-    url,
-    maxTimeout,
-    disableMedia: true,
-  });
-
-  const { status, solution } = response.data;
-
-  if (status !== 'ok') {
-    throw new Error(`FlareSolverr error: ${status}`);
-  }
-
-  return {
-    html: solution.response,
-    cookies: solution.cookies,
-    userAgent: solution.userAgent
-  };
 }

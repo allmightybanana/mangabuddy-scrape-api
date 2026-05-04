@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
@@ -5,7 +6,7 @@ import swaggerSpec from './config/swagger.js';
 import mangaRoutes from './routes/manga.js';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // CORS configuration
 app.use(cors({
@@ -68,7 +69,22 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\x1b[32m[SERVER]\x1b[0m Running on http://localhost:${PORT}`);
   console.log(`\x1b[36m[DOCS]\x1b[0m Available at http://localhost:${PORT}/docs`);
 });
+
+// Graceful shutdown
+import { destroySession } from './services/flare.js';
+
+const shutdown = async () => {
+  console.log('\nShutting down server...');
+  await destroySession();
+  server.close(() => {
+    console.log('Server closed.');
+    process.exit(0);
+  });
+};
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
